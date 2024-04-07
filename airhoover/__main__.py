@@ -81,22 +81,29 @@ SETTINGS index_granularity = 8192
 
         self.ch.raw_query(create_table_sql)
 
-    def update_loop(self, interval: int = 2):
+    def run(self, interval: int = 10) -> None:
+        """Run update in a loop"""
+
+        # Create results table if it doesn't already exist
+        self.create_table_maybe()
+
         min_next_update = 0
 
+        # TODO: this should probably be controlable with a signal or event?
         while True:
             try:
                 if min_next_update < (now := time.monotonic()):
-                    print("updating")
+                    print("Performing update")
                     min_next_update = now + interval
                     self.update()
 
                 time.sleep(0.01)
+            except clickhouse_connect.driver.exceptions.ClickHouseError:
+                print("ClickHouse error, will try again...")
             except Exception:
-                print("Error, will try again...")
+                print("Unknown exception occurred during update")
 
-    def update(self):
-        url = self.DATA_URL.format(lat=self.lat, lon=self.lon, radius=self.radius)
+    def update(self) -> None:
         query = f"""INSERT INTO aircraft_tracking SELECT
             now() AS time_ingested,
             ifNull(hex, '') AS hex_id,
@@ -165,4 +172,4 @@ SETTINGS index_granularity = 8192
 
 if __name__ == "__main__":
     hoover = AirHoover(52.392363, -1.610521, 250)
-    hoover.update_loop(10)  # Trigger every 10 seconds
+    hoover.run(10)  # Trigger every 10 seconds
