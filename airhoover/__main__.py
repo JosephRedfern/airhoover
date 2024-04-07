@@ -1,5 +1,4 @@
 import clickhouse_connect
-import requests
 
 import time
 
@@ -8,7 +7,7 @@ class AirHoover:
     DATA_URL = "https://api.airplanes.live/v2/point/{lat}/{lon}/{radius}"
 
     def __init__(self, lat: float, lon: float, radius: float):
-        self.ch = clickhouse_connect.get_client(host='localhost', username='default', password='')
+        self.ch = clickhouse_connect.get_client(host="localhost", username="default", password="")
         self.lat = lat
         self.lon = lon
         self.radius = radius
@@ -80,6 +79,8 @@ TTL time_ingested + toIntervalDay(7)
 SETTINGS index_granularity = 8192
 """
 
+        self.ch.raw_query(create_table_sql)
+
     def update_loop(self, interval: int = 2):
         min_next_update = 0
 
@@ -93,7 +94,6 @@ SETTINGS index_granularity = 8192
                 time.sleep(0.01)
             except Exception:
                 print("Error, will try again...")
-
 
     def update(self):
         url = self.DATA_URL.format(lat=self.lat, lon=self.lon, radius=self.radius)
@@ -164,5 +164,5 @@ SETTINGS index_granularity = 8192
 
 
 if __name__ == "__main__":
-    hoover = AirHoover(52.392363, -1.610521, 30000)
-    hoover.update_loop(10)
+    hoover = AirHoover(52.392363, -1.610521, 250)
+    hoover.update_loop(10)  # Trigger every 10 seconds

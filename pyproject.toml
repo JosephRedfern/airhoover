@@ -11,6 +11,12 @@ clickhouse-connect = "^0.7.3"
 requests = "^2.31.0"
 
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
